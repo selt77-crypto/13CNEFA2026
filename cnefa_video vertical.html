@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>13 CNEFA · Video Publicitario 3D</title>
+
+<!-- AR.js + A-Frame -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+<script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
+<!-- Google Fonts: Orbitron + Exo 2 (same family as poster) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --c-deep: #030b1a;
+    --c-navy: #041228;
+    --c-blue: #0a2a6e;
+    --c-sky: #00c8ff;
+    --c-gold: #ffd440;
+    --c-white: #e8f4ff;
+    --c-muted: rgba(180,220,255,0.7);
+    --font-display: 'Orbitron', sans-serif;
+    --font-body: 'Exo 2', sans-serif;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--c-deep);
+  }
+
+  /* ── CANVAS 3D ─────────────────────────────── */
+  #canvas3d {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+  }
+
+  /* ── OVERLAY UI ─────────────────────────────── */
+  #overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  /* top status bar */
+  #topbar {
+    width: 100%;
+    padding: 14px 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tag-pill {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--c-sky);
+    border: 1px solid rgba(0,200,255,0.35);
+    background: rgba(0,100,200,0.12);
+    padding: 5px 14px;
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+  }
+
+  .ar-badge {
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #df9fff;
+    border: 1px solid rgba(200,100,255,0.4);
+    background: rgba(120,0,200,0.2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    animation: arPulse 2.5s ease-in-out infinite;
+    backdrop-filter: blur(8px);
+  }
+
+  @keyframes arPulse {
+    0%,100% { box-shadow: 0 0 8px rgba(180,0,255,0.2); }
+    50% { box-shadow: 0 0 22px rgba(200,100,255,0.55); }
+  }
+
+  /* ── MAIN CARD ──────────────────────────────── */
+  #mainCard {
+    width: calc(100% - 32px);
+    max-width: 400px;
+    margin-top: 18px;
+    background: linear-gradient(160deg,
+      rgba(4,18,40,0.88) 0%,
+      rgba(0,20,70,0.82) 60%,
+      rgba(2,10,30,0.92) 100%);
+    border: 1px solid rgba(0,200,255,0.25);
+    border-radius: 20px;
+    padding: 26px 24px 22px;
+    backdrop-filter: blur(18px);
+    box-shadow:
+      0 0 60px rgba(0,100,255,0.18),
+      0 24px 80px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.07);
+    animation: cardFloat 5s ease-in-out infinite;
+    pointer-events: auto;
+  }
+
+  @keyframes cardFloat {
+    0%,100% { transform: perspective(900px) rotateX(1.5deg) rotateY(-0.5deg) translateY(0); }
+    33%  { transform: perspective(900px) rotateX(-0.5deg) rotateY(1deg) translateY(-6px); }
+    66%  { transform: perspective(900px) rotateX(2deg) rotateY(-1deg) translateY(-3px); }
+  }
+
+  /* glowing top border line */
+  #mainCard::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20%; right: 20%;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--c-sky), transparent);
+    border-radius: 2px;
+    animation: topGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes topGlow {
+    0%,100% { opacity: 0.5; left: 30%; right: 30%; }
+    50% { opacity: 1; left: 10%; right: 10%; }
+  }
+
+  /* hero row */
+  .hero-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .num-13 {
+    font-family: var(--font-display);
+    font-size: 78px;
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(160deg, #6af 0%, var(--c-sky) 40%, #0055cc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(0,180,255,0.25);
+    text-shadow: none;
+    animation: num3d 4s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes num3d {
+    0%,100% { filter: drop-shadow(0 0 18px rgba(0,180,255,0.5)); }
+    50% { filter: drop-shadow(0 0 40px rgba(0,220,255,0.85)); }
+  }
+
+  .div-v {
+    width: 2px;
+    height: 72px;
+    background: linear-gradient(to bottom, transparent, var(--c-sky), transparent);
+    flex-shrink: 0;
+  }
+
+  .congress-title {
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    font-weight: 300;
+    line-height: 1.45;
+    color: var(--c-white);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .congress-title strong {
+    color: var(--c-sky);
+    font-weight: 700;
+  }
+
+  .astro-o {
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    vertical-align: middle;
+  }
+
+  /* divider */
+  .h-line {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(0,200,255,0.3), transparent);
+    margin: 14px 0;
+  }
+
+  /* event date */
+  .event-date {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--c-gold);
+    letter-spacing: 1.5px;
+    text-align: center;
+    margin-bottom: 4px;
+    animation: goldGlow 2.5s ease-in-out infinite;
+  }
+
+  @keyframes goldGlow {
+    0%,100% { text-shadow: 0 0 16px rgba(255,210,0,0.35); }
+    50% { text-shadow: 0 0 40px rgba(255,220,0,0.7), 0 0 80px rgba(255,180,0,0.3); }
+  }
+
+  .event-location {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--c-muted);
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 2px;
+  }
+
+  .event-url {
+    font-family: var(--font-display);
+    font-size: 11px;
+    color: var(--c-sky);
+    letter-spacing: 2px;
+    text-align: center;
+    opacity: 0.8;
+  }
+
+  /* ── SLIDES ─────────────────────────────────── */
+  #slidesArea {
+    width: calc(100% - 32px);
+    max-width: 400px;
+    margin-top: 12px;
+    position: relative;
+  }
+
+  .slide {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    animation: slideFade 0.7s ease;
+  }
+
+  .slide.active { display: flex; }
+
+  @keyframes slideFade {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* date grid */
+  .date-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .date-card {
+    background: linear-gradient(140deg, rgba(0,40,100,0.7), rgba(0,15,50,0.85));
+    border: 1px solid rgba(0,180,255,0.2);
+    border-radius: 12px;
+    padding: 12px 14px;
+    animation: floatCard 4s ease-in-out infinite;
+  }
+
+  .date-card:nth-child(2) { animation-delay:.7s; }
+  .date-card:nth-child(3) { animation-delay:1.4s; }
+  .date-card:nth-child(4) { animation-delay:2.1s; }
+
+  @keyframes floatCard {
+    0%,100% { transform: perspective(500px) rotateX(1.5deg) translateY(0); }
+    50% { transform: perspective(500px) rotateX(-0.5deg) translateY(-4px); }
+  }
+
+  .dc-label {
+    font-family: var(--font-body);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--c-sky);
+    margin-bottom: 3px;
+  }
+
+  .dc-value {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--c-gold);
+  }
+
+  .dc-desc {
+    font-family: var(--font-body);
+    font-size: 9.5px;
+    color: rgba(160,205,255,0.65);
+    line-height: 1.35;
+    margin-top: 2px;
+  }
+
+  /* axes grid */
+  .axes-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .ax-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: rgba(180,220,255,0.82);
+    padding: 8px 10px;
+    background: rgba(0,25,70,0.5);
+    border: 1px solid rgba(0,100,200,0.15);
+    border-radius: 8px;
+    line-height: 1.35;
+  }
+
+  .ax-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* theme */
+  .theme-box {
+    background: linear-gradient(135deg, rgba(0,80,40,0.35), rgba(0,50,25,0.5));
+    border: 1px solid rgba(0,200,100,0.25);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-style: italic;
+    font-weight: 600;
+    color: #7effc0;
+    text-align: center;
+    letter-spacing: .5px;
+    line-height: 1.5;
+  }
+
+  /* CTA */
+  .cta-btn {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #0055cc, #00aaff);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 32px;
+    cursor: pointer;
+    animation: ctaGlow 2s ease-in-out infinite;
+    display: block;
+    width: 100%;
+    text-decoration: none;
+    text-align: center;
+  }
+
+  @keyframes ctaGlow {
+    0%,100% { box-shadow: 0 0 24px rgba(0,150,255,0.4); }
+    50% { box-shadow: 0 0 50px rgba(0,200,255,0.7), 0 0 90px rgba(0,100,255,0.3); }
+  }
+
+  /* ── PROGRESS DOTS ──────────────────────────── */
+  #dots {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex;
+    gap: 8px;
+    pointer-events: auto;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(0,180,255,0.3);
+    cursor: pointer;
+    transition: all .4s ease;
+    border: none;
+  }
+
+  .dot.on {
+    background: var(--c-sky);
+    width: 24px;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0,200,255,0.7);
+  }
+
+  /* ── AR HINT ────────────────────────────────── */
+  #arHint {
+    position: fixed;
+    bottom: 52px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: rgba(140,190,255,0.6);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* ── AR MODE ────────────────────────────────── */
+  #arScene {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+  }
+
+  #arScene.visible { display: block; }
+
+  #arToggle {
+    position: fixed;
+    bottom: 80px;
+    right: 16px;
+    z-index: 30;
+    font-family: var(--font-display);
+    font-size: 9px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #df9fff;
+    border: 1px solid rgba(200,100,255,0.5);
+    background: rgba(80,0,150,0.3);
+    border-radius: 50px;
+    padding: 10px 16px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    pointer-events: auto;
+    animation: arPulse 2.5s ease-in-out infinite;
+  }
+
+  #arClose {
+    display: none;
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 200;
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--c-sky);
+    border: 1px solid rgba(0,200,255,0.4);
+    background: rgba(0,10,40,0.7);
+    border-radius: 50px;
+    padding: 10px 18px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+  }
+
+  #arScene.visible ~ #arClose { display: block; }
+
+  /* slide section header */
+  .s-head {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--c-white);
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .s-tag {
+    font-family: var(--font-body);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--c-sky);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  /* scrollable slides area */
+  #slidesArea {
+    overflow-y: auto;
+    max-height: calc(100vh - 340px);
+    scrollbar-width: none;
+  }
+  #slidesArea::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<!-- 3D Canvas (Three.js) -->
+<canvas id="canvas3d"></canvas>
+
+<!-- UI Overlay -->
+<div id="overlay">
+
+  <!-- Top bar -->
+  <div id="topbar">
+    <div class="tag-pill">Colombia · 2026</div>
+    <div class="ar-badge">⬡ AR · HIRO</div>
+  </div>
+
+  <!-- Main header card -->
+  <div id="mainCard">
+    <div class="hero-row">
+      <div class="num-13">13</div>
+      <div class="div-v"></div>
+      <div class="congress-title">
+        Congreso Nacional de<br>
+        <strong>Enseñanza</strong> de la Física<br>
+        y la Astr<span class="astro-o">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline;vertical-align:middle">
+            <circle cx="7.5" cy="7.5" r="3.5" stroke="#00c8ff" stroke-width="1.2"/>
+            <ellipse cx="7.5" cy="7.5" rx="7" ry="3" stroke="#00c8ff" stroke-width="0.8" opacity="0.6"/>
+          </svg>
+        </span>nomía
+      </div>
+    </div>
+    <div class="h-line"></div>
+    <div class="event-date">7, 8 y 9 · Octubre · 2026</div>
+    <div class="event-location">Universidad Tecnológica de Pereira</div>
+    <div class="event-url">www.13cnefa.com</div>
+  </div>
+
+  <!-- Slides content -->
+  <div id="slidesArea">
+
+    <!-- Slide 0: Dates -->
+    <div class="slide active" id="sl-0">
+      <div class="s-tag">Fechas Importantes</div>
+      <div class="date-grid">
+        <div class="date-card">
+          <div class="dc-label">Propuestas</div>
+          <div class="dc-value">15 Abr 2026</div>
+          <div class="dc-desc">Fecha límite de presentación</div>
+        </div>
+        <div class="date-card">
+          <div class="dc-label">Aprobadas</div>
+          <div class="dc-value">11 May 2026</div>
+          <div class="dc-desc">Info de propuestas aprobadas</div>
+        </div>
+        <div class="date-card">
+          <div class="dc-label">Artículos</div>
+          <div class="dc-value">9 Jun 2026</div>
+          <div class="dc-desc">Envío de ponencias orales</div>
+        </div>
+        <div class="date-card">
+          <div class="dc-label">Resultado</div>
+          <div class="dc-value">22 Jun 2026</div>
+          <div class="dc-desc">Info de artículos aprobados</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 1: Theme + mission -->
+    <div class="slide" id="sl-1">
+      <div class="s-tag">Lema del Congreso</div>
+      <div class="theme-box">
+        "Innovar para enseñar,<br>enseñar para transformar"
+      </div>
+      <div class="s-tag" style="margin-top:10px;">Misión</div>
+      <div class="ax-item" style="background:rgba(0,20,60,0.6);">
+        <div class="ax-dot" style="background:#0af;"></div>
+        Reunir a docentes, investigadores y futuros profesores en un espacio de encuentro para compartir experiencias y reflexionar sobre los desafíos de la educación científica.
+      </div>
+    </div>
+
+    <!-- Slide 2: Axes -->
+    <div class="slide" id="sl-2">
+      <div class="s-tag">Ejes Temáticos</div>
+      <div class="axes-grid">
+        <div class="ax-item"><div class="ax-dot" style="background:#0af;"></div>Innovación pedagógica en Física y Astronomía</div>
+        <div class="ax-item"><div class="ax-dot" style="background:#0f8;"></div>Integración de enfoques STEM+ en educación científica</div>
+        <div class="ax-item"><div class="ax-dot" style="background:#f0a;"></div>Inteligencia artificial aplicada a la enseñanza</div>
+        <div class="ax-item"><div class="ax-dot" style="background:#fa0;"></div>Impacto de políticas públicas en ciencias</div>
+        <div class="ax-item"><div class="ax-dot" style="background:#8af;"></div>Inclusión, equidad y participación científica</div>
+        <div class="ax-item"><div class="ax-dot" style="background:#f50;"></div>Formación inicial y continua de docentes de física</div>
+        <div class="ax-item"><div class="ax-dot" style="background:#ff0;"></div>Divulgación científica y apropiación social</div>
+      </div>
+    </div>
+
+    <!-- Slide 3: CTA -->
+    <div class="slide" id="sl-3">
+      <div class="s-tag">¡Participa!</div>
+      <div class="theme-box" style="font-size:12px;font-style:normal;color:var(--c-white);">
+        Sé parte del encuentro más importante de la enseñanza de la Física y la Astronomía en Colombia.
+      </div>
+      <a class="cta-btn" href="https://www.13cnefa.com" target="_blank">Inscríbete ahora</a>
+      <div style="text-align:center;font-family:var(--font-display);font-size:11px;color:var(--c-sky);letter-spacing:2px;margin-top:4px;">www.13cnefa.com</div>
+      <div style="text-align:center;font-family:var(--font-body);font-size:9px;color:rgba(140,180,255,0.5);letter-spacing:3px;text-transform:uppercase;margin-top:6px;">Apunta marcador HIRO para AR</div>
+    </div>
+
+  </div><!-- end slidesArea -->
+
+</div><!-- end overlay -->
+
+<!-- AR toggle button -->
+<button id="arToggle" onclick="toggleAR()">⬡ Modo AR</button>
+<button id="arClose" onclick="closeAR()">✕ Salir AR</button>
+
+<!-- Progress dots -->
+<div id="dots">
+  <button class="dot on" onclick="goSlide(0)"></button>
+  <button class="dot" onclick="goSlide(1)"></button>
+  <button class="dot" onclick="goSlide(2)"></button>
+  <button class="dot" onclick="goSlide(3)"></button>
+</div>
+
+<!-- AR hint -->
+<div id="arHint">Desliza para más · Toca AR para activar</div>
+
+<!-- A-Frame AR Scene (hidden until activated) -->
+<div id="arScene">
+  <a-scene
+    embedded
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+    vr-mode-ui="enabled: false"
+    renderer="logarithmicDepthBuffer: true; antialias: true;"
+    style="width:100%;height:100%;">
+
+    <a-marker preset="hiro" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
+
+      <!-- Base platform glow ring -->
+      <a-torus position="0 0.02 0" radius="1.2" radius-tubular="0.015"
+        color="#00c8ff" opacity="0.5"
+        animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear">
+      </a-torus>
+
+      <!-- 13 big number -->
+      <a-text value="13" position="-0.55 1.8 0" scale="3.5 3.5 3.5"
+        color="#00c8ff" font="kelsonsans" align="center"
+        animation="property: position; from: -0.55 1.8 0; to: -0.55 2.2 0; dir: alternate; loop: true; dur: 2000; easing: easeInOutSine">
+      </a-text>
+
+      <!-- Divider bar -->
+      <a-box position="0.25 1.5 0" width="0.04" height="1.0" depth="0.04"
+        color="#00c8ff" opacity="0.7"></a-box>
+
+      <!-- Congress title text -->
+      <a-text value="CONGRESO NACIONAL DE" position="0.6 2.1 0" scale="0.7 0.7 0.7"
+        color="#e8f4ff" align="left" font="kelsonsans"></a-text>
+      <a-text value="ENSEÑANZA" position="0.6 1.85 0" scale="0.9 0.9 0.9"
+        color="#00c8ff" align="left" font="kelsonsans"></a-text>
+      <a-text value="DE LA FÍSICA Y LA" position="0.6 1.6 0" scale="0.7 0.7 0.7"
+        color="#e8f4ff" align="left" font="kelsonsans"></a-text>
+      <a-text value="ASTRONOMÍA" position="0.6 1.35 0" scale="0.7 0.7 0.7"
+        color="#e8f4ff" align="left" font="kelsonsans"></a-text>
+
+      <!-- Date highlight -->
+      <a-text value="7, 8 y 9 · OCT · 2026" position="0 0.95 0" scale="0.75 0.75 0.75"
+        color="#ffd440" align="center" font="kelsonsans"
+        animation="property: scale; from: 0.75 0.75 0.75; to: 0.85 0.85 0.85; dir: alternate; loop: true; dur: 1500; easing: easeInOutSine">
+      </a-text>
+
+      <!-- Location text -->
+      <a-text value="Universidad Tecnológica de Pereira" position="0 0.72 0"
+        scale="0.42 0.42 0.42" color="rgba(180,220,255,0.8)" align="center"></a-text>
+
+      <!-- Orbiting planet -->
+      <a-sphere position="0 0.5 0" radius="0.25"
+        color="#1a3a8f" metalness="0.5" roughness="0.4" opacity="0.9"
+        animation="property: rotation; to: 0 360 0; loop: true; dur: 20000; easing: linear">
+        <!-- moon -->
+        <a-sphere position="0.5 0 0" radius="0.07" color="#9ab0c8"
+          animation="property: rotation; to: 0 -360 0; loop: true; dur: 6000; easing: linear">
+        </a-sphere>
+      </a-sphere>
+
+      <!-- Orbit ring around planet -->
+      <a-torus position="0 0.5 0" radius="0.5" radius-tubular="0.008"
+        color="#4af" opacity="0.4" rotation="80 0 0">
+      </a-torus>
+
+      <!-- Small orbiting satellite -->
+      <a-box position="0 0.5 0" width="0.06" height="0.03" depth="0.1"
+        color="#00c8ff" opacity="0.8"
+        animation__orbit="property: rotation; to: 0 360 0; loop: true; dur: 4000; easing: linear"
+        animation__move="property: position; from: 0.9 0.5 0; to: 0.9 0.5 0; loop: true; dur: 4000">
+      </a-box>
+
+      <!-- Base glow -->
+      <a-plane position="0 0.01 0" rotation="-90 0 0" width="2.5" height="2.5"
+        color="#001030" opacity="0.7">
+      </a-plane>
+
+    </a-marker>
+
+    <a-entity camera></a-entity>
+
+  </a-scene>
+</div>
+
+<!-- Three.js + App JS -->
+<script src="cnefa_video.js"></script>
+
+</body>
+</html>
