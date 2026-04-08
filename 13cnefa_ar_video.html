@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>13 CNEFA - Congreso Nacional de Enseñanza de la Física y la Astronomía</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,100;0,300;0,400;0,700;1,300&display=swap');
+
+  :root {
+    --teal: #0ea5c9;
+    --teal-dark: #0c7a96;
+    --gold: #f59e0b;
+    --bg-deep: #020d1a;
+    --bg-mid: #041525;
+    --text-primary: #e8f4fd;
+    --text-secondary: #7dd3fc;
+    --glow: rgba(14, 165, 201, 0.6);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-deep);
+    font-family: 'Exo 2', sans-serif;
+    color: var(--text-primary);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+
+  /* CANVAS DE FONDO */
+  #bg-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+  }
+
+  /* UTP BACKGROUND IMAGE */
+  .utp-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: 
+      linear-gradient(180deg, rgba(2,13,26,0.85) 0%, rgba(4,21,37,0.7) 40%, rgba(2,13,26,0.9) 100%);
+    z-index: 1;
+  }
+
+  /* CONTAINER PRINCIPAL */
+  .scene {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    perspective: 1200px;
+  }
+
+  /* GRID HOLOGRÁFICO */
+  .holo-grid {
+    position: fixed;
+    bottom: 0; left: 0;
+    width: 100%; height: 50%;
+    z-index: 2;
+    opacity: 0.15;
+    background:
+      linear-gradient(0deg, var(--teal) 1px, transparent 1px),
+      linear-gradient(90deg, var(--teal) 1px, transparent 1px);
+    background-size: 60px 60px;
+    transform: perspective(600px) rotateX(60deg);
+    transform-origin: bottom center;
+    animation: gridPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes gridPulse {
+    0%, 100% { opacity: 0.12; }
+    50% { opacity: 0.22; }
+  }
+
+  /* ESTRELLAS FLOTANTES */
+  .stars-layer {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    animation: twinkle var(--dur) ease-in-out infinite var(--delay);
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+  }
+
+  /* LOGO 13 */
+  .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 20px;
+    animation: logoFloat 6s ease-in-out infinite;
+    transform-style: preserve-3d;
+  }
+
+  @keyframes logoFloat {
+    0%, 100% { transform: translateY(0) rotateX(0deg); }
+    25% { transform: translateY(-8px) rotateX(2deg); }
+    75% { transform: translateY(4px) rotateX(-1deg); }
+  }
+
+  .number-13 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(100px, 16vw, 180px);
+    font-weight: 900;
+    color: white;
+    text-shadow:
+      0 0 30px var(--glow),
+      0 0 60px rgba(14,165,201,0.4),
+      0 0 100px rgba(14,165,201,0.2),
+      4px 4px 0 rgba(0,0,0,0.5);
+    line-height: 1;
+    letter-spacing: -5px;
+    animation: numberGlow 4s ease-in-out infinite;
+    position: relative;
+  }
+
+  @keyframes numberGlow {
+    0%, 100% { 
+      text-shadow: 0 0 30px var(--glow), 0 0 60px rgba(14,165,201,0.4), 4px 4px 0 rgba(0,0,0,0.5);
+    }
+    50% { 
+      text-shadow: 0 0 50px var(--glow), 0 0 100px rgba(14,165,201,0.6), 0 0 140px rgba(14,165,201,0.3), 4px 4px 0 rgba(0,0,0,0.5);
+    }
+  }
+
+  .divider-line {
+    width: 4px;
+    height: clamp(80px, 12vw, 140px);
+    background: linear-gradient(180deg, transparent, var(--teal), transparent);
+    margin: 0 24px;
+    box-shadow: 0 0 20px var(--glow);
+    animation: linePulse 2s ease-in-out infinite;
+  }
+
+  @keyframes linePulse {
+    0%, 100% { opacity: 0.7; box-shadow: 0 0 20px var(--glow); }
+    50% { opacity: 1; box-shadow: 0 0 40px var(--glow), 0 0 60px rgba(14,165,201,0.5); }
+  }
+
+  .title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .title-line1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(18px, 3vw, 38px);
+    font-weight: 700;
+    color: white;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  .title-line2 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(20px, 3.2vw, 42px);
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1.1;
+    text-shadow: 0 0 20px var(--glow);
+    animation: textGlow 3s ease-in-out infinite;
+  }
+
+  .title-line3 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(20px, 3.2vw, 42px);
+    font-weight: 700;
+    color: white;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  @keyframes textGlow {
+    0%, 100% { text-shadow: 0 0 20px var(--glow); color: var(--teal); }
+    50% { text-shadow: 0 0 40px var(--glow), 0 0 70px rgba(14,165,201,0.5); color: #7dd3fc; }
+  }
+
+  .atom-icon {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    vertical-align: middle;
+    margin: 0 4px;
+    animation: spinAtom 4s linear infinite;
+  }
+
+  @keyframes spinAtom {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* SUBTÍTULO FECHA */
+  .date-block {
+    margin-top: 16px;
+    text-align: center;
+    animation: fadeInUp 1s ease-out 0.5s both;
+  }
+
+  .date-text {
+    font-family: 'Exo 2', sans-serif;
+    font-size: clamp(13px, 1.8vw, 20px);
+    font-weight: 300;
+    color: var(--gold);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 0 0 15px rgba(245,158,11,0.6);
+  }
+
+  .location-text {
+    font-family: 'Exo 2', sans-serif;
+    font-size: clamp(11px, 1.4vw, 16px);
+    font-weight: 300;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+
+  /* LEMA */
+  .slogan {
+    font-family: 'Exo 2', sans-serif;
+    font-style: italic;
+    font-size: clamp(14px, 2vw, 22px);
+    font-weight: 300;
+    color: rgba(255,255,255,0.9);
+    letter-spacing: 1px;
+    margin-top: 24px;
+    text-align: center;
+    animation: sloganPulse 5s ease-in-out infinite;
+  }
+
+  @keyframes sloganPulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; color: #fff; }
+  }
+
+  /* EJES TEMÁTICOS - CHIPS */
+  .axes-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    max-width: 800px;
+    margin-top: 20px;
+    animation: fadeInUp 1s ease-out 1s both;
+  }
+
+  .axis-chip {
+    font-family: 'Exo 2', sans-serif;
+    font-size: clamp(9px, 1.1vw, 12px);
+    font-weight: 400;
+    color: var(--text-secondary);
+    border: 1px solid rgba(14,165,201,0.35);
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(14,165,201,0.08);
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+    animation: chipFloat var(--delay) ease-in-out infinite;
+  }
+
+  @keyframes chipFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); border-color: rgba(14,165,201,0.7); background: rgba(14,165,201,0.15); }
+  }
+
+  /* FIGURAS HOLOGRÁFICAS - CIENTÍFICOS */
+  .holo-figures {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .scientist {
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: scientistWalk var(--walk-dur) ease-in-out infinite var(--walk-delay);
+  }
+
+  @keyframes scientistWalk {
+    0% { transform: translateX(-120px) translateY(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateX(120px) translateY(-10px); opacity: 0; }
+  }
+
+  .scientist-body {
+    width: var(--size);
+    height: calc(var(--size) * 2.2);
+    position: relative;
+    filter: drop-shadow(0 0 15px var(--color)) drop-shadow(0 0 30px var(--color));
+    opacity: 0.85;
+  }
+
+  /* SVG CIENTÍFICO */
+  .scientist-svg {
+    width: 100%;
+    height: 100%;
+    animation: holoFlicker 0.15s ease-in-out infinite;
+  }
+
+  @keyframes holoFlicker {
+    0%, 94%, 100% { opacity: 0.85; }
+    95% { opacity: 0.6; }
+    97% { opacity: 0.9; }
+  }
+
+  .scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--color), transparent);
+    animation: scan 2s linear infinite;
+    top: 0;
+  }
+
+  @keyframes scan {
+    0% { top: 0%; opacity: 0.8; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* PARTÍCULAS */
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: particleMove var(--dur) ease-in-out infinite var(--delay);
+    pointer-events: none;
+  }
+
+  @keyframes particleMove {
+    0% { transform: translate(0,0) scale(1); opacity: 0.8; }
+    50% { transform: translate(var(--tx), var(--ty)) scale(1.5); opacity: 1; }
+    100% { transform: translate(0,0) scale(1); opacity: 0.8; }
+  }
+
+  /* ORBITAS */
+  .orbit-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0.15;
+  }
+
+  .orbit-ring {
+    position: absolute;
+    border: 1px solid var(--teal);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    top: 50%; left: 50%;
+    animation: orbitSpin var(--speed) linear infinite;
+  }
+
+  @keyframes orbitSpin {
+    from { transform: translate(-50%, -50%) rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(0deg); }
+    to { transform: translate(-50%, -50%) rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(360deg); }
+  }
+
+  /* URL */
+  .website-block {
+    position: fixed;
+    bottom: 28px;
+    width: 100%;
+    text-align: center;
+    z-index: 20;
+  }
+
+  .website-text {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(12px, 1.5vw, 16px);
+    font-weight: 400;
+    color: var(--teal);
+    letter-spacing: 4px;
+    text-shadow: 0 0 20px var(--glow);
+    animation: websitePulse 3s ease-in-out infinite;
+  }
+
+  @keyframes websitePulse {
+    0%, 100% { opacity: 0.8; letter-spacing: 4px; }
+    50% { opacity: 1; letter-spacing: 5px; text-shadow: 0 0 30px var(--glow), 0 0 50px rgba(14,165,201,0.5); }
+  }
+
+  /* HIRO AR BADGE */
+  .ar-badge {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 30;
+    background: rgba(14,165,201,0.12);
+    border: 1px solid rgba(14,165,201,0.5);
+    border-radius: 12px;
+    padding: 12px 16px;
+    text-align: center;
+    backdrop-filter: blur(8px);
+    animation: badgePulse 2s ease-in-out infinite;
+    cursor: pointer;
+  }
+
+  @keyframes badgePulse {
+    0%, 100% { border-color: rgba(14,165,201,0.4); box-shadow: 0 0 10px rgba(14,165,201,0.2); }
+    50% { border-color: rgba(14,165,201,0.8); box-shadow: 0 0 20px rgba(14,165,201,0.5); }
+  }
+
+  .ar-badge-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    color: var(--teal);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 6px;
+  }
+
+  .ar-badge-main {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 1px;
+  }
+
+  /* HIRO MARKER */
+  .hiro-marker {
+    width: 60px;
+    height: 60px;
+    border: 2px solid var(--teal);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: black;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hiro-inner {
+    width: 40px;
+    height: 40px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hiro-center {
+    width: 26px;
+    height: 26px;
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hiro-cross {
+    width: 14px;
+    height: 14px;
+    background: white;
+    clip-path: polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%);
+  }
+
+  /* FECHAS IMPORTANTES */
+  .dates-panel {
+    position: fixed;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+    background: rgba(2,13,26,0.8);
+    border: 1px solid rgba(14,165,201,0.3);
+    border-radius: 12px;
+    padding: 16px;
+    backdrop-filter: blur(10px);
+    max-width: 200px;
+    animation: panelSlide 1s ease-out 2s both;
+  }
+
+  @keyframes panelSlide {
+    from { opacity: 0; transform: translateY(-50%) translateX(-30px); }
+    to { opacity: 1; transform: translateY(-50%) translateX(0); }
+  }
+
+  .panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(14,165,201,0.3);
+  }
+
+  .date-item {
+    margin-bottom: 10px;
+    animation: dateAppear 0.5s ease-out var(--da) both;
+  }
+
+  @keyframes dateAppear {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .date-item-date {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    color: var(--teal);
+    letter-spacing: 1px;
+  }
+
+  .date-item-desc {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 9px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.3;
+    margin-top: 2px;
+  }
+
+  /* CORNER DECORATIONS */
+  .corner {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    z-index: 25;
+    opacity: 0.6;
+  }
+
+  .corner-tl { top: 0; left: 0; border-top: 2px solid var(--teal); border-left: 2px solid var(--teal); }
+  .corner-tr { top: 0; right: 0; border-top: 2px solid var(--teal); border-right: 2px solid var(--teal); }
+  .corner-bl { bottom: 0; left: 0; border-bottom: 2px solid var(--teal); border-left: 2px solid var(--teal); }
+  .corner-br { bottom: 0; right: 0; border-bottom: 2px solid var(--teal); border-right: 2px solid var(--teal); }
+
+  /* LOADING / INTRO */
+  .intro-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: var(--bg-deep);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    animation: introFade 1s ease-out 3.5s forwards;
+  }
+
+  @keyframes introFade {
+    to { opacity: 0; pointer-events: none; }
+  }
+
+  .intro-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(60px, 12vw, 120px);
+    font-weight: 900;
+    color: var(--teal);
+    text-shadow: 0 0 40px var(--glow);
+    animation: introScale 1s ease-out;
+  }
+
+  @keyframes introScale {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .intro-bar {
+    width: 300px;
+    height: 2px;
+    background: rgba(14,165,201,0.2);
+    border-radius: 1px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .intro-bar-fill {
+    height: 100%;
+    background: var(--teal);
+    box-shadow: 0 0 10px var(--glow);
+    animation: barFill 3s ease-out forwards;
+  }
+
+  @keyframes barFill {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+
+  .intro-sub {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 12px;
+    color: rgba(14,165,201,0.7);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* COLOMBIAN FLAG RIBBONS (top right corner decoration) */
+  .flag-ribbons {
+    position: fixed;
+    top: 0; right: 0;
+    width: 220px;
+    height: 150px;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0.7;
+  }
+
+  .ribbon {
+    position: absolute;
+    top: 0; right: -20px;
+    width: 300px;
+    height: 18px;
+    transform-origin: top right;
+    border-radius: 2px;
+    animation: ribbonWave 4s ease-in-out infinite;
+  }
+
+  @keyframes ribbonWave {
+    0%, 100% { transform: rotate(var(--base-angle)) scaleY(1); }
+    50% { transform: rotate(calc(var(--base-angle) + 2deg)) scaleY(0.95); }
+  }
+
+  .ribbon-1 { background: #FCD116; --base-angle: -40deg; top: 5px; }
+  .ribbon-2 { background: #003893; --base-angle: -40deg; top: 22px; }
+  .ribbon-3 { background: #CE1126; --base-angle: -40deg; top: 39px; }
+
+  /* HOVER TO VIEW AR */
+  .ar-hint {
+    position: fixed;
+    bottom: 60px;
+    right: 24px;
+    z-index: 25;
+    font-family: 'Exo 2', sans-serif;
+    font-size: 10px;
+    color: rgba(14,165,201,0.6);
+    letter-spacing: 2px;
+    text-align: center;
+    animation: hintBlink 2s ease-in-out infinite;
+  }
+
+  @keyframes hintBlink {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.9; }
+  }
+
+  /* MODAL AR */
+  .ar-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(2,13,26,0.95);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .ar-modal.active { display: flex; }
+
+  .ar-modal-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px var(--glow);
+  }
+
+  .ar-instructions {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+    max-width: 400px;
+    line-height: 1.6;
+  }
+
+  .hiro-display {
+    width: 160px;
+    height: 160px;
+    border: 3px solid var(--teal);
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 30px var(--glow);
+    animation: hiroPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes hiroPulse {
+    0%, 100% { box-shadow: 0 0 20px var(--glow); }
+    50% { box-shadow: 0 0 50px var(--glow), 0 0 80px rgba(14,165,201,0.3); }
+  }
+
+  .hiro-display-inner {
+    width: 120px;
+    height: 120px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hiro-display-center {
+    width: 80px;
+    height: 80px;
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hiro-display-cross {
+    width: 44px;
+    height: 44px;
+    background: white;
+    clip-path: polygon(33% 0%, 67% 0%, 67% 33%, 100% 33%, 100% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 0% 67%, 0% 33%, 33% 33%);
+  }
+
+  .close-btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    color: var(--teal);
+    border: 1px solid rgba(14,165,201,0.5);
+    padding: 10px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 3px;
+    background: transparent;
+    transition: all 0.3s;
+  }
+
+  .close-btn:hover {
+    background: rgba(14,165,201,0.1);
+    border-color: var(--teal);
+    box-shadow: 0 0 15px var(--glow);
+  }
+
+  .ar-link {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 13px;
+    color: var(--gold);
+    text-decoration: none;
+    letter-spacing: 2px;
+  }
+
+  .ar-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- INTRO SPLASH -->
+<div class="intro-overlay">
+  <div class="intro-logo">13</div>
+  <div class="intro-bar"><div class="intro-bar-fill"></div></div>
+  <div class="intro-sub">Iniciando transmisión holográfica...</div>
+</div>
+
+<!-- CORNER DECORATIONS -->
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<!-- CANVAS FONDO ANIMADO -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- FONDO CON OVERLAY -->
+<div class="utp-bg"></div>
+
+<!-- GRID HOLOGRÁFICO -->
+<div class="holo-grid"></div>
+
+<!-- ESTRELLAS -->
+<div class="stars-layer" id="stars"></div>
+
+<!-- ANILLOS DE ÓRBITA -->
+<div class="orbit-container">
+  <div class="orbit-ring" style="width:600px;height:600px;--speed:20s;--rx:75deg;--ry:5deg;opacity:0.3;"></div>
+  <div class="orbit-ring" style="width:400px;height:400px;--speed:15s;--rx:65deg;--ry:20deg;opacity:0.25;"></div>
+  <div class="orbit-ring" style="width:800px;height:800px;--speed:30s;--rx:80deg;--ry:-10deg;opacity:0.15;"></div>
+</div>
+
+<!-- FIGURAS HOLOGRÁFICAS -->
+<div class="holo-figures" id="holo-figures"></div>
+
+<!-- CINTAS COLOMBIANAS -->
+<div class="flag-ribbons">
+  <div class="ribbon ribbon-1"></div>
+  <div class="ribbon ribbon-2"></div>
+  <div class="ribbon ribbon-3"></div>
+</div>
+
+<!-- PANEL FECHAS IZQUIERDA -->
+<div class="dates-panel">
+  <div class="panel-title">⬛ Fechas Importantes</div>
+  <div class="date-item" style="--da: 2.5s">
+    <div class="date-item-date">15 ABR 2026</div>
+    <div class="date-item-desc">Límite presentación de propuestas</div>
+  </div>
+  <div class="date-item" style="--da: 3s">
+    <div class="date-item-date">11 MAY 2026</div>
+    <div class="date-item-desc">Propuestas aprobadas</div>
+  </div>
+  <div class="date-item" style="--da: 3.5s">
+    <div class="date-item-date">9 JUN 2026</div>
+    <div class="date-item-desc">Envío de artículos</div>
+  </div>
+  <div class="date-item" style="--da: 4s">
+    <div class="date-item-date">22 JUN 2026</div>
+    <div class="date-item-desc">Artículos aprobados</div>
+  </div>
+</div>
+
+<!-- BADGE AR DERECHA -->
+<div class="ar-badge" onclick="document.getElementById('ar-modal').classList.add('active')">
+  <div class="hiro-marker">
+    <div class="hiro-inner">
+      <div class="hiro-center">
+        <div class="hiro-cross"></div>
+      </div>
+    </div>
+  </div>
+  <span class="ar-badge-main">HIRO AR</span>
+  <span class="ar-badge-text">Ver en Realidad Aumentada</span>
+</div>
+
+<div class="ar-hint">TOCA PARA<br>ACTIVAR AR</div>
+
+<!-- ESCENA PRINCIPAL -->
+<div class="scene">
+  <div class="logo-container">
+    <div class="number-13">13</div>
+    <div class="divider-line"></div>
+    <div class="title-block">
+      <div class="title-line1">Congreso Nacional de</div>
+      <div class="title-line2">
+        Enseñanza de la Física
+        <svg class="atom-icon" viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="20" r="3" fill="#0ea5c9"/>
+          <ellipse cx="20" cy="20" rx="18" ry="6" stroke="#0ea5c9" stroke-width="1.5" fill="none"/>
+          <ellipse cx="20" cy="20" rx="18" ry="6" stroke="#0ea5c9" stroke-width="1.5" fill="none" transform="rotate(60 20 20)"/>
+          <ellipse cx="20" cy="20" rx="18" ry="6" stroke="#0ea5c9" stroke-width="1.5" fill="none" transform="rotate(-60 20 20)"/>
+        </svg>
+      </div>
+      <div class="title-line3">y la Astronomía
+        <svg style="width:28px;height:28px;vertical-align:middle;display:inline-block;margin-left:4px;" viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="8" fill="none" stroke="#0ea5c9" stroke-width="1.5"/>
+          <ellipse cx="20" cy="20" rx="18" ry="5" stroke="#0ea5c9" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="date-block">
+    <div class="date-text">7, 8 y 9 de Octubre de 2026</div>
+    <div class="location-text">Universidad Tecnológica de Pereira · Colombia</div>
+  </div>
+
+  <div class="slogan">« Innovar para enseñar, enseñar para transformar »</div>
+
+  <div class="axes-container">
+    <span class="axis-chip" style="--delay:3s">Innovación Pedagógica</span>
+    <span class="axis-chip" style="--delay:3.5s">STEM+</span>
+    <span class="axis-chip" style="--delay:4s">Inteligencia Artificial</span>
+    <span class="axis-chip" style="--delay:4.5s">Políticas Públicas</span>
+    <span class="axis-chip" style="--delay:5s">Inclusión y Equidad</span>
+    <span class="axis-chip" style="--delay:5.5s">Formación Docente</span>
+    <span class="axis-chip" style="--delay:6s">Investigación Educativa</span>
+    <span class="axis-chip" style="--delay:6.5s">Divulgación Científica</span>
+  </div>
+</div>
+
+<!-- URL ABAJO -->
+<div class="website-block">
+  <div class="website-text">www.13cnefa.com</div>
+</div>
+
+<!-- MODAL AR -->
+<div id="ar-modal" class="ar-modal">
+  <div class="ar-modal-title">⬛ Realidad Aumentada</div>
+  <div class="hiro-display">
+    <div class="hiro-display-inner">
+      <div class="hiro-display-center">
+        <div class="hiro-display-cross"></div>
+      </div>
+    </div>
+  </div>
+  <div class="ar-instructions">
+    Imprime o muestra este marcador HIRO en tu pantalla.<br>
+    Luego abre la experiencia AR y apunta tu cámara hacia él<br>para ver el congreso en <strong>Realidad Aumentada</strong>.
+  </div>
+  <a class="ar-link" href="https://jeromeetienne.github.io/AR.js/three.js/examples/marker-training/examples/pattern-creator/" target="_blank">
+    ↗ Abrir experiencia AR (AR.js)
+  </a>
+  <button class="close-btn" onclick="document.getElementById('ar-modal').classList.remove('active')">
+    CERRAR
+  </button>
+</div>
+
+<script>
+// ─── ESTRELLAS ───────────────────────────────────────────
+const starsContainer = document.getElementById('stars');
+for(let i=0; i<120; i++){
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random()*2.5+0.5;
+  s.style.cssText = `
+    width:${size}px;height:${size}px;
+    left:${Math.random()*100}%;top:${Math.random()*100}%;
+    --dur:${Math.random()*4+2}s;--delay:${Math.random()*5}s;
+  `;
+  starsContainer.appendChild(s);
+}
+
+// ─── CANVAS FONDO (NEBULOSA) ─────────────────────────────
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// UTP building placeholder (deep space nebula effect)
+function drawNebula() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  
+  // Fondo oscuro del universo
+  const bg = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+  bg.addColorStop(0,'#020d1a');
+  bg.addColorStop(0.4,'#031120');
+  bg.addColorStop(1,'#010810');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // Nebulosa lateral izquierda
+  const neb1 = ctx.createRadialGradient(canvas.width*0.15,canvas.height*0.5,0,canvas.width*0.15,canvas.height*0.5,canvas.width*0.35);
+  neb1.addColorStop(0,'rgba(14,165,201,0.06)');
+  neb1.addColorStop(0.5,'rgba(14,165,201,0.03)');
+  neb1.addColorStop(1,'transparent');
+  ctx.fillStyle = neb1;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // Nebulosa lateral derecha
+  const neb2 = ctx.createRadialGradient(canvas.width*0.85,canvas.height*0.4,0,canvas.width*0.85,canvas.height*0.4,canvas.width*0.3);
+  neb2.addColorStop(0,'rgba(14,165,201,0.05)');
+  neb2.addColorStop(1,'transparent');
+  ctx.fillStyle = neb2;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // Representación arquitectónica simple de la UTP (silueta)
+  drawUTPSilhouette();
+}
+
+function drawUTPSilhouette() {
+  const W = canvas.width, H = canvas.height;
+  ctx.save();
+  ctx.globalAlpha = 0.12;
+
+  // Silueta edificio principal UTP (estilo cable-stayed bridge + edificios)
+  ctx.strokeStyle = '#0ea5c9';
+  ctx.lineWidth = 1;
+
+  // Puente Pereira (reconocible del banner)
+  const bx = W*0.75, by = H*0.55, bw = W*0.25, bh = H*0.3;
+  // Torres del puente
+  ctx.beginPath();
+  ctx.moveTo(bx + bw*0.35, by+bh);
+  ctx.lineTo(bx + bw*0.35, by);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(bx + bw*0.65, by+bh);
+  ctx.lineTo(bx + bw*0.65, by);
+  ctx.stroke();
+  // Cables
+  for(let i=0; i<=8; i++){
+    const t = i/8;
+    ctx.beginPath();
+    ctx.moveTo(bx + bw*0.35, by+5);
+    ctx.lineTo(bx + bw*t, by+bh);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(bx + bw*0.65, by+5);
+    ctx.lineTo(bx + bw*(0.35+0.65*t), by+bh);
+    ctx.stroke();
+  }
+
+  // Edificios campus UTP lado izquierdo
+  const buildings = [
+    {x:0.02, w:0.06, h:0.25},
+    {x:0.09, w:0.04, h:0.20},
+    {x:0.14, w:0.08, h:0.30},
+    {x:0.23, w:0.05, h:0.18},
+    {x:0.29, w:0.07, h:0.22},
+  ];
+  buildings.forEach(b => {
+    const bX = W*b.x, bY = H*0.9, bW = W*b.w, bH = H*b.h;
+    ctx.beginPath();
+    ctx.rect(bX, bY-bH, bW, bH);
+    ctx.stroke();
+    // Ventanas
+    for(let row=1; row<=Math.floor(b.h*10)-1; row++){
+      for(let col=1; col<=Math.floor(b.w*10)-1; col++){
+        ctx.fillStyle = 'rgba(14,165,201,0.3)';
+        ctx.fillRect(bX + col*(bW/(Math.floor(b.w*10))), bY-bH+row*(bH/(Math.floor(b.h*10)+1))-3, 4, 4);
+      }
+    }
+  });
+
+  ctx.restore();
+}
+
+drawNebula();
+
+// ─── CIENTÍFICOS HOLOGRÁFICOS ─────────────────────────────
+const scientistsData = [
+  { side:'left', x:'8%', color:'#0ea5c9', size:50, dur:'12s', delay:'1s', desc:'Científico Joven' },
+  { side:'right', x:'85%', color:'#3b82f6', size:55, dur:'16s', delay:'4s', desc:'Investigadora' },
+  { side:'left', x:'15%', color:'#0ea5c9', size:45, dur:'20s', delay:'8s', desc:'Estudiante' },
+  { side:'right', x:'78%', color:'#06b6d4', size:58, dur:'14s', delay:'6s', desc:'Profesor' },
+];
+
+const holoContainer = document.getElementById('holo-figures');
+
+scientistsData.forEach((sci, i) => {
+  const div = document.createElement('div');
+  div.className = 'scientist';
+  div.style.cssText = `left:${sci.x};--walk-dur:${sci.dur};--walk-delay:${sci.delay};--size:${sci.size}px;--color:${sci.color};`;
+
+  // SVG científico holográfico
+  const colors = {
+    main: sci.color,
+    dark: sci.color.replace('0ea5c9','0c7a96').replace('3b82f6','1d4ed8').replace('06b6d4','0284a0'),
+    light: 'rgba(255,255,255,0.8)',
+  };
+
+  const isFemale = i===1||i===2;
+  const isYoung = i===0||i===2;
+
+  div.innerHTML = `
+    <div class="scientist-body" style="--color:${sci.color}">
+      <svg class="scientist-svg" viewBox="0 0 60 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bodyGrad${i}" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="${sci.color}" stop-opacity="0.7"/>
+            <stop offset="50%" stop-color="${sci.color}" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="${sci.color}" stop-opacity="0.5"/>
+          </linearGradient>
+          <filter id="glow${i}">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        
+        <!-- Cabeza -->
+        <ellipse cx="30" cy="${isYoung?14:15}" rx="${isYoung?9:10}" ry="${isYoung?10:11}" 
+          fill="url(#bodyGrad${i})" stroke="${sci.color}" stroke-width="0.5" filter="url(#glow${i})"/>
+        
+        <!-- Cabello ${isFemale?'largo':'corto'} -->
+        ${isFemale ? `
+          <ellipse cx="30" cy="8" rx="10" ry="5" fill="${sci.color}" opacity="0.8"/>
+          <rect x="20" y="8" width="3" height="14" rx="1.5" fill="${sci.color}" opacity="0.7"/>
+          <rect x="37" y="8" width="3" height="14" rx="1.5" fill="${sci.color}" opacity="0.7"/>
+        ` : `
+          <ellipse cx="30" cy="7" rx="9" ry="4" fill="${sci.color}" opacity="0.9"/>
+        `}
+        
+        <!-- Cuello -->
+        <rect x="27" y="${isYoung?23:25}" width="6" height="5" fill="${sci.color}" opacity="0.7"/>
+        
+        <!-- Cuerpo - Bata de laboratorio / Ropa -->
+        <path d="M18 ${isYoung?28:30} L12 ${isYoung?75:78} L48 ${isYoung?75:78} L42 ${isYoung?28:30} Z" 
+          fill="url(#bodyGrad${i})" stroke="${sci.color}" stroke-width="0.5" opacity="0.85"/>
+        
+        <!-- Cuello de ropa -->
+        <path d="M27 ${isYoung?28:30} L30 ${isYoung?36:38} L33 ${isYoung?28:30}" 
+          stroke="rgba(255,255,255,0.5)" stroke-width="0.7" fill="none"/>
+        
+        <!-- Brazos -->
+        <path d="M18 ${isYoung?32:34} Q8 ${isYoung?48:50} 10 ${isYoung?65:68}" 
+          stroke="${sci.color}" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.8"/>
+        <path d="M42 ${isYoung?32:34} Q52 ${isYoung?48:50} 50 ${isYoung?65:68}" 
+          stroke="${sci.color}" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.8"/>
+        
+        <!-- Manos -->
+        <ellipse cx="10" cy="${isYoung?67:70}" rx="4" ry="3" fill="${sci.color}" opacity="0.7"/>
+        <ellipse cx="50" cy="${isYoung?67:70}" rx="4" ry="3" fill="${sci.color}" opacity="0.7"/>
+        
+        <!-- Objeto en mano (libro/tablet/beaker) -->
+        ${i===0 ? `<rect x="2" y="${isYoung?62:65}" width="10" height="13" rx="1" fill="${sci.color}" opacity="0.6" stroke="rgba(255,255,255,0.4)" stroke-width="0.5"/>` : ''}
+        ${i===1 ? `<rect x="43" y="${isYoung?60:63}" width="12" height="9" rx="1" fill="${sci.color}" opacity="0.6"/><line x1="44" y1="${isYoung?63:66}" x2="54" y2="${isYoung?63:66}" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>` : ''}
+        ${i===2 ? `<path d="M4 ${isYoung?62:65} L6 ${isYoung?75:78} L10 ${isYoung?75:78} L12 ${isYoung?62:65} Q8 ${isYoung?60:63} 4 ${isYoung?62:65}" fill="${sci.color}" opacity="0.6"/>` : ''}
+        ${i===3 ? `<path d="M43 ${isYoung?63:66} L48 ${isYoung?58:61} L53 ${isYoung?62:65} L50 ${isYoung?70:73} L45 ${isYoung?70:73} Z" fill="${sci.color}" opacity="0.6"/>` : ''}
+        
+        <!-- Piernas -->
+        <rect x="21" y="${isYoung?74:77}" width="7" height="${isYoung?30:28}" rx="2" fill="${sci.color}" opacity="0.75"/>
+        <rect x="32" y="${isYoung?74:77}" width="7" height="${isYoung?30:28}" rx="2" fill="${sci.color}" opacity="0.75"/>
+        
+        <!-- Zapatos -->
+        <ellipse cx="24.5" cy="${isYoung?107:108}" rx="7" ry="3" fill="${sci.color}" opacity="0.6"/>
+        <ellipse cx="35.5" cy="${isYoung?107:108}" rx="7" ry="3" fill="${sci.color}" opacity="0.6"/>
+        
+        <!-- Efecto scan lines holográfico -->
+        ${Array.from({length:8},(_,k)=>`
+          <line x1="5" y1="${15+k*15}" x2="55" y2="${15+k*15}" 
+            stroke="${sci.color}" stroke-width="0.3" opacity="${0.1+Math.random()*0.15}"/>
+        `).join('')}
+        
+        <!-- Partículas -->
+        <circle cx="${10+Math.random()*40}" cy="${10+Math.random()*100}" r="1" fill="white" opacity="0.6">
+          <animate attributeName="cy" values="${10+Math.random()*100};${Math.random()*110};${10+Math.random()*100}" dur="3s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.6;0.1;0.6" dur="3s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="${10+Math.random()*40}" cy="${10+Math.random()*100}" r="0.8" fill="${sci.color}" opacity="0.8">
+          <animate attributeName="cy" values="${Math.random()*110};${10+Math.random()*100};${Math.random()*110}" dur="4s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.8;0.2;0.8" dur="4s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+      <div class="scan-line" style="--color:${sci.color}"></div>
+    </div>
+  `;
+
+  holoContainer.appendChild(div);
+});
+
+// ─── PARTÍCULAS FLOTANTES ─────────────────────────────────
+for(let i=0; i<40; i++){
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const size = Math.random()*3+1;
+  const isBlue = Math.random()>0.3;
+  p.style.cssText = `
+    width:${size}px;height:${size}px;
+    left:${Math.random()*100}%;
+    top:${Math.random()*100}%;
+    background:${isBlue?'#0ea5c9':'#f59e0b'};
+    box-shadow:0 0 ${size*3}px ${isBlue?'#0ea5c9':'#f59e0b'};
+    --dur:${Math.random()*6+3}s;
+    --delay:${Math.random()*5}s;
+    --tx:${(Math.random()-0.5)*60}px;
+    --ty:${(Math.random()-0.5)*60}px;
+    z-index:4;
+    pointer-events:none;
+    position:fixed;
+  `;
+  document.body.appendChild(p);
+}
+
+// ─── RESIZE ───────────────────────────────────────────────
+window.addEventListener('resize', ()=>{
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  drawNebula();
+});
+
+// ─── ANIMACIÓN DE PULSACIÓN CONTINUA ─────────────────────
+let pulseT = 0;
+function animatePulse(){
+  pulseT += 0.01;
+  // Pequeña animación de intensidad en canvas
+  if(Math.floor(pulseT*10)%50===0) drawNebula();
+  requestAnimationFrame(animatePulse);
+}
+animatePulse();
+</script>
+</body>
+</html>
